@@ -13,6 +13,7 @@ fcbh_cli.parser.add_argument("--language", type=str, default='default',
 fcbh_cli.args = fcbh_cli.parser.parse_args()
 fcbh_cli.args.disable_cuda_malloc = True
 fcbh_cli.args.auto_launch = True
+fcbh_cli.args.auto_launch = False if fcbh_cli.args.disable_auto_launch else True
 
 if getattr(fcbh_cli.args, 'port', 8188) == 8188:
     fcbh_cli.args.port = None
