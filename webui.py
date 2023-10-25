@@ -9,14 +9,16 @@ import modules.path
 import fooocus_version
 import modules.html
 import modules.async_worker as worker
+import modules.constants as constants
 import modules.flags as flags
 import modules.gradio_hijack as grh
 import modules.advanced_parameters as advanced_parameters
 import args_manager
 
-from modules.sdxl_styles import legal_style_names, aspect_ratios
+from modules.sdxl_styles import legal_style_names
 from modules.private_logger import get_current_html_path
 from modules.ui_gradio_extensions import reload_javascript
+from modules.auth import auth_enabled, check_auth
 
 
 def generate_clicked(*args):
@@ -186,23 +188,29 @@ with shared.gradio_root:
         with gr.Column(scale=1, visible=modules.path.default_advanced_checkbox) as advanced_column:
             with gr.Tab(label='Setting'):
                 performance_selection = gr.Radio(label='Performance', choices=['Speed', 'Quality'], value='Speed')
-                aspect_ratios_selection = gr.Radio(label='Aspect Ratios', choices=list(aspect_ratios.keys()),
+                aspect_ratios_selection = gr.Radio(label='Aspect Ratios', choices=modules.path.available_aspect_ratios,
                                                    value=modules.path.default_aspect_ratio, info='width × height')
                 image_number = gr.Slider(label='Image Number', minimum=1, maximum=32, step=1, value=modules.path.default_image_number)
                 negative_prompt = gr.Textbox(label='Negative Prompt', show_label=True, placeholder="Type prompt here.",
                                              info='Describing what you do not want to see.', lines=2,
                                              value=modules.path.default_negative_prompt)
                 seed_random = gr.Checkbox(label='Random', value=True)
-                image_seed = gr.Number(label='Seed', value=0, precision=0, visible=False)
+                image_seed = gr.Textbox(label='Seed', value=0, max_lines=1, visible=False) # workaround for https://github.com/gradio-app/gradio/issues/5354
 
                 def random_checked(r):
                     return gr.update(visible=not r)
 
-                def refresh_seed(r, s):
+                def refresh_seed(r, seed_string):
                     if r:
-                        return random.randint(1, 1024*1024*1024)
+                        return random.randint(constants.MIN_SEED, constants.MAX_SEED)
                     else:
-                        return s
+                        try:
+                            seed_value = int(seed_string)
+                            if constants.MIN_SEED <= seed_value <= constants.MAX_SEED:
+                                return seed_value
+                        except ValueError:
+                            pass
+                        return random.randint(constants.MIN_SEED, constants.MAX_SEED)
 
                 seed_random.change(random_checked, inputs=[seed_random], outputs=[image_seed], queue=False)
 
@@ -369,5 +377,7 @@ shared.gradio_root.launch(
     inbrowser=args_manager.args.auto_launch,
     server_name=args_manager.args.listen,
     server_port=args_manager.args.port,
-    share=args_manager.args.share
+    share=args_manager.args.share,
+    auth=check_auth if args_manager.args.share and auth_enabled else None,
+    blocked_paths=[constants.AUTH_FILENAME]
 )
