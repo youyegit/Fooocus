@@ -156,6 +156,15 @@ with shared.gradio_root:
                                         ip_type.change(lambda x: flags.default_parameters[x], inputs=[ip_type], outputs=[ip_stop, ip_weight], queue=False, show_progress=False)
                                     ip_ad_cols.append(ad_col)
                         ip_advanced = gr.Checkbox(label='Advanced', value=False, container=False)
+
+                        # tdxh: set a common setting of Image Prompt
+                        ip_common_setting_checkbox = gr.Checkbox(label="Set first image as PyraCanny and the second as CPDS", value=False, container=False) 
+                        # tdxh: add a checkbox to get_SDXL_best_size， set width and height by first image's ratio
+                        with gr.Row():
+                            ip_first_ratio_checkbox = gr.Checkbox(label="Set width and height by first image's ratio", value=False, container=False) 
+                            ip_first_ratio = gr.Textbox(show_label=False, container=False, visible=False) 
+                            ip_first_ratio_checkbox.change(lambda x:gr.update(visible=x),inputs=ip_first_ratio_checkbox,outputs=ip_first_ratio,queue=False)
+
                         gr.HTML('* \"Image Prompt\" is powered by Fooocus Image Mixture Engine (v1.0.1). <a href="https://github.com/lllyasviel/Fooocus/discussions/557" target="_blank">\U0001F4D4 Document</a>')
 
                         def ip_advance_checked(x):
@@ -360,6 +369,33 @@ with shared.gradio_root:
                 model_refresh.click(model_refresh_clicked, [], [base_model, refiner_model] + lora_ctrls, queue=False)
 
         advanced_checkbox.change(lambda x: gr.update(visible=x), advanced_checkbox, advanced_column, queue=False)
+
+        # tdxh: set a common setting of Image Prompt
+        def ip_common_setting(x):
+            if x:
+                return gr.update(value=flags.cn_canny),\
+                    gr.update(value=flags.cn_cpds)
+            return gr.update(value=flags.default_ip),\
+                gr.update(value=flags.default_ip)
+        ip_common_setting_checkbox.change(ip_common_setting,inputs=ip_common_setting_checkbox,outputs=[ip_types[0],ip_types[1]] , queue=False)\
+        # tdxh: add a checkbox to get_SDXL_best_size， set width and height by first image's ratio
+        aspect_ratios_selection_temp = aspect_ratios_selection
+        aspect_ratios_selection = gr.State('')
+        def ip_first_change(check, image, temp, input_image_checkbox):
+            ip_first_ratio  = ''
+            aspect_ratios_selection = temp
+            if input_image_checkbox and check:
+                if image is not None: 
+                    from tdxh_lib.tdxh_lib import tdxh_image_to_SDXL_best_size
+                    sdxl_best_size = tdxh_image_to_SDXL_best_size(image)
+                    ip_first_ratio = f'{sdxl_best_size[0]}×{sdxl_best_size[1]}'
+                    aspect_ratios_selection = ip_first_ratio   
+            return ip_first_ratio, aspect_ratios_selection
+        ratio_inputs=[ip_first_ratio_checkbox, ip_images[0],aspect_ratios_selection_temp, input_image_checkbox]
+        ratio_outputs = [ip_first_ratio,aspect_ratios_selection]
+        ip_images[0].change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
+        ip_first_ratio_checkbox.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
+        input_image_checkbox.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
 
         ctrls = [
             prompt, negative_prompt, style_selections,

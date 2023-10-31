@@ -394,5 +394,7 @@
     "B1": "B1",
     "B2": "B2",
     "S1": "S1",
-    "S2": "S2"
+    "S2": "S2",
+    "Set width and height by first image's ratio":"使用第 1 张图的比例设置宽 × 高",
+    "Set first image as PyraCanny and the second as CPDS":"将第 1 、第 2 张图分别设置为线稿图控制、深度图控制"
 }
