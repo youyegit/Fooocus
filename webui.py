@@ -396,6 +396,7 @@ with shared.gradio_root:
         ip_images[0].change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
         ip_first_ratio_checkbox.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
         input_image_checkbox.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
+        aspect_ratios_selection_temp.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
 
         ctrls = [
             prompt, negative_prompt, style_selections,
