@@ -1,3 +1,26 @@
+**(2023 Oct 26) Hi all, the feature updating of Fooocus will (really, really, this time) be paused for about two or three weeks because we really have some other workloads. Thanks for the passion of you all (and we in fact have kept updating even after last pausing announcement a week ago, because of many great feedbacks)  - see you soon and we will come back in mid November. However, you may still see updates if other collaborators are fixing bugs or solving problems.**
+
+# 2.1.750
+
+* New UI: now you can get each image during generating.
+
+# 2.1.743
+
+* Improved GPT2 by removing some tokens that may corrupt styles.
+
+# 2.1.741
+
+Style Updates:
+
+* "Default (Slightly Cinematic)" as renamed to "Fooocus Cinematic".
+* "Default (Slightly Cinematic)" is canceled from default style selections. 
+* Added "Fooocus Sharp". This style combines many CivitAI prompts that reduces SDXL blurry and improves sharpness in a relatively natural way.
+* Added "Fooocus Enhance". This style mainly use the very popular [default negative prompts from JuggernautXL](https://civitai.com/models/133005) and some other enhancing words. JuggernautXL's negative prompt has been proved to be very effective in many recent image posts on CivitAI to improve JuggernautXL and many other models.
+* "Fooocus Sharp" and "Fooocus Enhance" and "Fooocus V2" becomes the new default set of styles.
+* Removed the default text in the "negative prompt" input area since it is not necessary now.
+* You can reproduce previous results by using "Fooocus Cinematic".
+* "Fooocus Sharp" and "Fooocus Enhance" may undergo minor revision in future updates.
+
 # 2.1.739
 
 * Added support for authentication in --share mode (via auth.json).
