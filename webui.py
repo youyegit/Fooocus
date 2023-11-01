@@ -1,3 +1,5 @@
+from altair import value
+from sympy import true
 from python_hijack import *
 
 import gradio as gr
@@ -112,11 +114,60 @@ with shared.gradio_root:
 
                     stop_button.click(stop_clicked, outputs=[skip_button, stop_button], queue=False, _js='cancelGenerateForever')
                     skip_button.click(skip_clicked, queue=False)
+            
+            # tdxh: type prompt here with your language
+            import tdxh_lib.tdxh_lib as tdxh_lib_in
+            with gr.Row(elem_classes='type_row',visible=False) as translator_row:
+                with gr.Column(scale=17):
+                    with gr.Row():
+                        with gr.Column(scale=18):
+                            prompt_local = gr.Textbox(show_label=False, placeholder="Type prompt here with your language and click Translate button.",
+                                        container=False, autofocus=True, elem_classes='type_row', lines=1024)
+                        with gr.Column(scale=2):
+                            translator_language = gr.Dropdown(label='Language',show_label=True, choices=['None'] + tdxh_lib_in.input_language_list, value=tdxh_lib_in.input_language_default, interactive=True, elem_classes='type_row')
+                with gr.Column(scale=3, min_width=0):
+                    translator_button = gr.Button(label="Translate", value="Translate", elem_classes='type_row', elem_id='translate_button', visible=True)
+               
+            # tdxh: type prompt here with your language
+            translate_checkbox = gr.Checkbox(label='Prompt Translator', value=False, container=False, elem_classes='min_check')
+            translator = None
+            translator_language_now = translator_language.value
+            def init_translator(x, y):
+                global translator
+                global translator_language_now
+                if x :
+                    if translator is None or translator is not None and y != translator_language_now:
+                        translator=tdxh_lib_in.TdxhStringInputTranslator(input_language = y)
+                        translator_language_now = y
+                        print(f"init Prompt Translator, done. translator_language_now is {translator_language_now}")
+                    # else:
+                    #     translator.active()
+                    #     print("active Prompt Translator, done.")
+                if not x:
+                    if translator is not None:
+                        translator.deactive()
+                        print("deactive Prompt Translator, done.")
+                return gr.update(visible=x)
+            translate_checkbox.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
+            translator_language.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
+            def translate_prompt(x,y):
+                global translator
+                yield gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),\
+                    gr.update(interactive=False)
+                if translator is None:
+                    translator=tdxh_lib_in.TdxhStringInputTranslator(input_language = y)
+                    print("init Prompt Translator, again.")
+                translator.prompt_input(str(x))
+                yield gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),\
+                        gr.update(interactive=True,value=translator.run()[0])
+            translator_button.click(translate_prompt, inputs= [prompt_local,translator_language],\
+                                     outputs=[prompt_local, translator_button,generate_button,translate_checkbox, translator_language, prompt], queue=True)
+
             with gr.Row(elem_classes='advanced_check_row'):
                 input_image_checkbox = gr.Checkbox(label='Input Image', value=False, container=False, elem_classes='min_check')
                 advanced_checkbox = gr.Checkbox(label='Advanced', value=modules.path.default_advanced_checkbox, container=False, elem_classes='min_check')
             with gr.Row(visible=False) as image_input_panel:
-                with gr.Tabs():
+                with gr.Tabs() as ip_tags_holder: # tdxh: selected Tag
                     with gr.TabItem(label='Upscale or Variation') as uov_tab:
                         with gr.Row():
                             with gr.Column():
@@ -124,7 +175,7 @@ with shared.gradio_root:
                             with gr.Column():
                                 uov_method = gr.Radio(label='Upscale or Variation:', choices=flags.uov_list, value=flags.disabled)
                                 gr.HTML('<a href="https://github.com/lllyasviel/Fooocus/discussions/390" target="_blank">\U0001F4D4 Document</a>')
-                    with gr.TabItem(label='Image Prompt') as ip_tab:
+                    with gr.TabItem(label='Image Prompt',id='Image Prompt TagItem') as ip_tab:  # tdxh: selected Tag
                         with gr.Row():
                             ip_images = []
                             ip_types = []
@@ -377,7 +428,8 @@ with shared.gradio_root:
                     gr.update(value=flags.cn_cpds)
             return gr.update(value=flags.default_ip),\
                 gr.update(value=flags.default_ip)
-        ip_common_setting_checkbox.change(ip_common_setting,inputs=ip_common_setting_checkbox,outputs=[ip_types[0],ip_types[1]] , queue=False)\
+        ip_common_setting_checkbox.change(ip_common_setting,inputs=ip_common_setting_checkbox,outputs=[ip_types[0],ip_types[1]] , queue=False)
+        
         # tdxh: add a checkbox to get_SDXL_best_size， set width and height by first image's ratio
         aspect_ratios_selection_temp = aspect_ratios_selection
         aspect_ratios_selection = gr.State('')
@@ -397,6 +449,18 @@ with shared.gradio_root:
         ip_first_ratio_checkbox.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
         input_image_checkbox.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
         aspect_ratios_selection_temp.change(ip_first_change,inputs=ratio_inputs,outputs= ratio_outputs , queue=False)
+
+        # tdxh: load setting
+        shared.gradio_root.load(lambda: (gr.update(value=True, visible=False),gr.update(selected='Image Prompt TagItem')), \
+                                outputs=[ip_advanced,ip_tags_holder]) 
+        shared.gradio_root.load(lambda: (gr.update(value=True), \
+                                        gr.update(value=True), \
+                                        # gr.update(value=True), \
+                                        gr.update(value=True),gr.update(value=True)),\
+                                outputs=[translate_checkbox, \
+                                        input_image_checkbox, \
+                                        # advanced_checkbox,\
+                                        ip_common_setting_checkbox,ip_first_ratio_checkbox]) 
 
         ctrls = [
             prompt, negative_prompt, style_selections,
