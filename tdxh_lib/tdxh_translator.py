@@ -18,8 +18,10 @@ import re
 import os
 
 my_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(my_dir,'..'))
 # The directory to store the models
-model_mbart = os.path.join(my_dir, "model", "mbart-large-50-many-to-many-mmt__only_to_English")
+# model_mbart = os.path.join(my_dir, "model", "mbart-large-50-many-to-many-mmt__only_to_English")
+model_mbart = os.path.join(parent_dir, "models", "translator_model","mbart-large-50-many-to-many-mmt__only_to_English")
 # cache_dir = "model"
 
 class MBartTranslator:
