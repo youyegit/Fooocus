@@ -155,7 +155,7 @@ with shared.gradio_root:
                 return gr.update(visible=x)
             translate_checkbox.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
             translator_language.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
-            def interactive_when_trans(a,b,c,d):
+            def interactive_when_trans():
                 return gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False)
             def translate_prompt(x,y,translator_to_prompt_mode,prompt):
                 global translator
