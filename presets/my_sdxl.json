@@ -1,5 +1,5 @@
 {
-    "temp_outputs_path": "..\\outputs",
+    "temp_outputs_path": "../outputs",
     "default_model": "sd_xl_base_1.0_0.9vae.safetensors",
     "default_refiner": "sd_xl_refiner_1.0_0.9vae.safetensors",
     "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",

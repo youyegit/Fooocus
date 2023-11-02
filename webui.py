@@ -155,10 +155,10 @@ with shared.gradio_root:
                 return gr.update(visible=x)
             translate_checkbox.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
             translator_language.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
+            def interactive_when_trans(a,b,c,d):
+                return gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False)
             def translate_prompt(x,y,translator_to_prompt_mode,prompt):
                 global translator
-                yield gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),\
-                    gr.update(interactive=False)
                 if translator is None:
                     translator=tdxh_lib_in.TdxhStringInputTranslator(input_language = y)
                     print("init Prompt Translator, again.")
@@ -168,10 +168,12 @@ with shared.gradio_root:
                     translated_value="{}, {}".format(prompt,translated_value)
                 if translator_to_prompt_mode == 'Add to the top':
                     translated_value="{}, {}".format(translated_value,prompt)
-                yield gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),\
+                return gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),\
                         gr.update(interactive=True,value=translated_value)
-            translator_button.click(translate_prompt, inputs= [prompt_local,translator_language,translator_to_prompt_mode,prompt],\
-                                     outputs=[prompt_local, translator_button,generate_button,translate_checkbox, translator_language, translator_to_prompt_mode, prompt], queue=True)
+            translator_button.click(interactive_when_trans,\
+                                    outputs=[prompt_local, translator_button,translate_checkbox, translator_language, translator_to_prompt_mode],queue=False)\
+                .then(translate_prompt, inputs= [prompt_local,translator_language,translator_to_prompt_mode,prompt],\
+                                    outputs=[prompt_local, translator_button,translate_checkbox, translator_language, translator_to_prompt_mode, prompt],queue=False) # no generate_button
 
             with gr.Row(elem_classes='advanced_check_row'):
                 input_image_checkbox = gr.Checkbox(label='Input Image', value=False, container=False, elem_classes='min_check')
