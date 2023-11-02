@@ -76,6 +76,14 @@ progress::after {
   height: 32px !important;
 }
 
+.type_row2{
+  height: 100px !important;
+}
+
+.type_row2_half{
+  height: 40px !important;
+}
+
 .scroll-hide{
   resize: none !important;
 }

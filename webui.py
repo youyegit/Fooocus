@@ -1,4 +1,5 @@
 from altair import value
+from matplotlib import interactive
 from sympy import true
 from python_hijack import *
 
@@ -117,19 +118,23 @@ with shared.gradio_root:
             
             # tdxh: type prompt here with your language
             import tdxh_lib.tdxh_lib as tdxh_lib_in
-            with gr.Row(elem_classes='type_row',visible=False) as translator_row:
-                with gr.Column(scale=17):
-                    with gr.Row():
-                        with gr.Column(scale=18):
-                            prompt_local = gr.Textbox(show_label=False, placeholder="Type prompt here with your language and click Translate button.",
-                                        container=False, autofocus=True, elem_classes='type_row', lines=1024)
-                        with gr.Column(scale=2):
-                            translator_language = gr.Dropdown(label='Language',show_label=True, choices=['None'] + tdxh_lib_in.input_language_list, value=tdxh_lib_in.input_language_default, interactive=True, elem_classes='type_row')
-                with gr.Column(scale=3, min_width=0):
-                    translator_button = gr.Button(label="Translate", value="Translate", elem_classes='type_row', elem_id='translate_button', visible=True)
-               
-            # tdxh: type prompt here with your language
-            translate_checkbox = gr.Checkbox(label='Prompt Translator', value=False, container=False, elem_classes='min_check')
+            with gr.Accordion(label='Translator in offline mode',open=True,visible=False)  as translator_row:
+                with gr.Row(elem_classes='type_row2'):
+                    with gr.Column(scale=17):
+                        with gr.Row():
+                            with gr.Column(scale=18):
+                                prompt_local = gr.Textbox(show_label=False, placeholder="Type prompt here with your language and click Translate button.",
+                                            container=False, autofocus=True, elem_classes='type_row2', lines=1024)
+                            with gr.Column(scale=2):
+                                with gr.Column(scale=2):
+                                    translator_language = gr.Dropdown(label='Language to be translated',show_label=False, choices=tdxh_lib_in.input_language_list, value=tdxh_lib_in.input_language_default, interactive=True, elem_classes='type_row2_half',container=False)
+                                with gr.Column(scale=2):
+                                    translator_to_prompt_mode_choices = ['Replace all', 'Add to the end','Add to the top']
+                                    translator_to_prompt_mode = gr.Dropdown(label='Translator to prompt mode',show_label=False, choices=translator_to_prompt_mode_choices,value='Replace all', interactive=True, elem_classes='type_row2_half',container=False)
+                    with gr.Column(scale=3, min_width=0):
+                        translator_button = gr.Button(label="Translate", value="Translate", elem_classes='type_row2', elem_id='translate_button', visible=True)
+            with gr.Row():
+                translate_checkbox = gr.Checkbox(scale=2, label='Prompt Translator', value=False, container=False, elem_classes='min_check')
             translator = None
             translator_language_now = translator_language.value
             def init_translator(x, y):
@@ -150,18 +155,23 @@ with shared.gradio_root:
                 return gr.update(visible=x)
             translate_checkbox.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
             translator_language.change(init_translator, inputs=[translate_checkbox,translator_language], outputs=translator_row, queue=False)
-            def translate_prompt(x,y):
+            def translate_prompt(x,y,translator_to_prompt_mode,prompt):
                 global translator
-                yield gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),\
+                yield gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),gr.update(interactive=False),\
                     gr.update(interactive=False)
                 if translator is None:
                     translator=tdxh_lib_in.TdxhStringInputTranslator(input_language = y)
                     print("init Prompt Translator, again.")
                 translator.prompt_input(str(x))
-                yield gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),\
-                        gr.update(interactive=True,value=translator.run()[0])
-            translator_button.click(translate_prompt, inputs= [prompt_local,translator_language],\
-                                     outputs=[prompt_local, translator_button,generate_button,translate_checkbox, translator_language, prompt], queue=True)
+                translated_value=translator.run()[0]
+                if translator_to_prompt_mode == 'Add to the end':
+                    translated_value="{}, {}".format(prompt,translated_value)
+                if translator_to_prompt_mode == 'Add to the top':
+                    translated_value="{}, {}".format(translated_value,prompt)
+                yield gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),gr.update(interactive=True),\
+                        gr.update(interactive=True,value=translated_value)
+            translator_button.click(translate_prompt, inputs= [prompt_local,translator_language,translator_to_prompt_mode,prompt],\
+                                     outputs=[prompt_local, translator_button,generate_button,translate_checkbox, translator_language, translator_to_prompt_mode, prompt], queue=True)
 
             with gr.Row(elem_classes='advanced_check_row'):
                 input_image_checkbox = gr.Checkbox(label='Input Image', value=False, container=False, elem_classes='min_check')
@@ -453,7 +463,7 @@ with shared.gradio_root:
         # tdxh: load setting
         shared.gradio_root.load(lambda: (gr.update(value=True, visible=False),gr.update(selected='Image Prompt TagItem')), \
                                 outputs=[ip_advanced,ip_tags_holder]) 
-        shared.gradio_root.load(lambda: (gr.update(value=True), \
+        shared.gradio_root.load(lambda: (gr.update(value=True, visible=False), \
                                         gr.update(value=True), \
                                         # gr.update(value=True), \
                                         gr.update(value=True),gr.update(value=True)),\

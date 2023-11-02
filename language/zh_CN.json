@@ -398,7 +398,14 @@
     "Set width and height by first image's ratio":"使用第 1 张图的比例设置宽 × 高",
     "Set first image as PyraCanny and the second as CPDS":"将第 1 、第 2 张图分别设置为线稿图控制、深度图控制",
     "Prompt Translator":"提示词翻译",
+    "Translator in offline mode'":"离线翻译",
     "Translate":"翻译",
     "Language":"语言",
+    "Language to be translated":"被翻译语言为：",
+    "Translator to prompt mode":"翻译后：",
+    "Replace all":"替换所有",
+    "Add to the end":"加在最后",
+    "Add to the top":"加在最前",
+    "Translator in offline mode":"本地翻译",
     "Type prompt here with your language and click Translate button.":"用中文在这里输入提示词，然后点击右侧的翻译按钮。"
 }
